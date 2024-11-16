@@ -1,0 +1,60 @@
+#include <iostream>
+#include <string>
+#include <ctime>
+
+// Function to get current date and time in the format for the NMEA sentence
+std::string getCurrentNMEASentence() {
+    // Get current time
+    std::time_t now = std::time(nullptr);
+    std::tm *currentTime = std::gmtime(&now);
+
+    // Format time in HHMMSS and date in DDMMYY for NMEA
+    char timeStr[7], dateStr[7];
+    std::strftime(timeStr, sizeof(timeStr), "%H%M%S", currentTime);
+    std::strftime(dateStr, sizeof(dateStr), "%d%m%y", currentTime);
+
+    // Mock NMEA sentence with current date and time, and fixed coordinates (sample location)
+    std::string nmea_sentence = "$GPRMC," + std::string(timeStr) + ",A,3749.000,N,12225.000,W,000.0,000.0," + std::string(dateStr) + ",003.1,W*6A";
+    return nmea_sentence;
+}
+
+// Function to parse time, date, and location from an NMEA sentence
+void parseNMEAData(const std::string &nmea_sentence, std::string &time, std::string &date, std::string &latitude, std::string &longitude) {
+    if (nmea_sentence.substr(0, 6) == "$GPRMC") {
+        // Extract time in HH:MM:SS format
+        time = nmea_sentence.substr(7, 2) + ":" + nmea_sentence.substr(9, 2) + ":" + nmea_sentence.substr(11, 2);
+
+        // Extract latitude in degrees and direction
+        latitude = nmea_sentence.substr(18, 2) + "°" + nmea_sentence.substr(20, 5) + "'" + nmea_sentence.substr(25, 1);
+
+        // Extract longitude in degrees and direction
+        longitude = nmea_sentence.substr(27, 3) + "°" + nmea_sentence.substr(30, 5) + "'" + nmea_sentence.substr(35, 1);
+
+        // Extract date in DD/MM/YY format
+        date = nmea_sentence.substr(51, 2) + "/" + nmea_sentence.substr(53, 2) + "/" + nmea_sentence.substr(55, 2);
+    } else {
+        time = "Invalid NMEA Sentence";
+        date = "Invalid NMEA Sentence";
+        latitude = "Invalid NMEA Sentence";
+        longitude = "Invalid NMEA Sentence";
+    }
+}
+
+int main() {
+    // Generate mock NMEA sentence with today's date and time
+    std::string nmea_sentence = getCurrentNMEASentence();
+
+    // Variables to hold parsed data
+    std::string time, date, latitude, longitude;
+
+    // Parse NMEA sentence for time, date, latitude, and longitude
+    parseNMEAData(nmea_sentence, time, date, latitude, longitude);
+
+    // Display parsed GPS data
+    std::cout << "GPS Time (UTC): " << time << std::endl;
+    std::cout << "GPS Date (DD/MM/YY): " << date << std::endl;
+    std::cout << "Latitude: " << latitude << std::endl;
+    std::cout << "Longitude: " << longitude << std::endl;
+
+    return 0;
+}
